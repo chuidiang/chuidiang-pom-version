@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE maven PUBLIC "-//APACHE//DTD Documentation Maven//EN" "http://maven.apache.org/maven-navigation-1.0.xsd">
+<project name="Plugin maven para cambio de versiones en los pom.xml">
+
+	<bannerLeft>
+		<name>Chuidiang Roxas</name>
+		<src>serpi.gif</src>
+		<href>http://www.chuidiang.com/</href>
+	</bannerLeft>
+
+	<bannerRight>
+		<src>
+			http://i.creativecommons.org/l/by-nc-sa/2.5/es/88x31.png
+		</src>
+		<href>
+			http://creativecommons.org/licenses/by-nc-sa/2.5/es/deed.es
+		</href>
+	</bannerRight>
+	<body>
+		<links>
+			<item name="Plugin maven cambio de versiones en los pom.xml"
+				href="http://proyectos.chuidiang.com/pom_version/index.html" />
+			<item name="Foro" href="http://foro.chuidiang.com/" />
+			<item name="Blog" href="http://blog.chuidiang.com/" />
+		</links>
+
+		<menu name="Plugin">
+			<item name="Descripci&oacute;n" href="index.html" />
+			<item name="Descarga" href="download.html" />
+		</menu>
+
+		<menu name="Informacion">
+			<item name="Licencia" href="licencia.html" />
+			<item name="Desarrolladores" href="desarrolladores.html" />
+		</menu>
+		<menu name="Informes">
+			<item name="Cobertura" href="cobertura/index.html" />
+			<item name="Javadoc" href="apidocs/index.html" />
+			<item name="Fuentes" href="xref/index.html" />
+		</menu>
+	</body>
+</project>
+

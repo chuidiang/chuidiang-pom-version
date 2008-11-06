@@ -1,0 +1,56 @@
+Descarga de la aplicacion
+
+ Los jar y fuentes de este plugin estan disponibles en el repositorio maven {{http://maven2.chuidiang.com/com/chuidiang/pom_version/1.0.0}}
+ 
+ Los fuentes estan accesibles a traves de Subversion en {{http://code.google.com/p/chuidiang-pom-version/source/checkout}}
+ 
+ Para poder usarlo en tus proyectos maven, debes indicar dicho repositorio como repositorio de plugins. Para ello, en el fichero <settings.xml> de maven o bien en tu <pom.xml> del proyecto, debes poner una lineas como estas
+ 
+ * O bien en el <settings.xml>
+ 
++-------------
+<settings>
+   ...
+   <profiles>
+      ...
+      <profile>
+	     <id>repo-chuidiang</id>
+	     <activation>
+	        <activeByDefault>true</activeByDefault>
+	     </activation>
+	     <pluginRepositories>
+	        <pluginRepository>
+               <id>com.chuidiang</id>
+               <name>com.chuidiang</name>
+               <url>http://maven2.chuidiang.com</url>
+               <releases>
+                  <enabled>true</enabled>
+               </releases>
+            </pluginRepository>
+         </pluginRepositories>
+      </profile>
+      ...   
+   </profiles>
+   ...
+</settings>
++-------------
+
+ * O bien en el <pom.xml>
+ 
++-------------
+<project>
+   ...
+   <pluginRepositories>
+      <pluginRepository>
+         <id>com.chuidiang</id>
+         <name>com.chuidiang</name>
+         <url>http://maven2.chuidiang.com</url>
+         <releases>
+            <enabled>true</enabled>
+         </releases>
+      </pluginRepository>
+      ...
+   </pluginRepositories>
+   ...
+</project>
++------------- 
