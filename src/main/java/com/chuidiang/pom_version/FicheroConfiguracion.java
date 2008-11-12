@@ -1,12 +1,11 @@
 package com.chuidiang.pom_version;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Hashtable;
+
+import org.apache.maven.plugin.logging.Log;
 
 /**
  * Lee el fichero cambio.conf en el directorio actual  y genera un
@@ -28,11 +27,15 @@ public class FicheroConfiguracion {
 	 * Hashtable con los cambios deseados.
 	 */
 	Hashtable<Artifact, Artifact> cambios = new Hashtable<Artifact, Artifact>();
+	
+	/** Log de maven */
+	private Log log;
 
 	/**
 	 * Lectura del fichero y generacion del Hashtable.
 	 */
-	public FicheroConfiguracion() {
+	public FicheroConfiguracion(Log log) {
+		this.log = log;
 		// Lectura del fichero.
 		File f = new File("./cambia.conf");
 		if (f.canRead()) {
@@ -64,13 +67,12 @@ public class FicheroConfiguracion {
 						// Al Hashtable.
 						cambios.put(artifactOriginal, artifactNuevo);
 					} catch (Exception e) {
-						e.printStackTrace();
+						log.error(e);
 					}
 					linea = bis.readLine();
 				}
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				log.error(e);
 			}
 
 		}

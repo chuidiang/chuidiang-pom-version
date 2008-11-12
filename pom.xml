@@ -4,8 +4,8 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.chuidiang</groupId>
 	<artifactId>pom_version</artifactId>
-	<packaging>jar</packaging>
-	<version>1.0.0</version>
+	<packaging>maven-plugin</packaging>
+	<version>1.0.1</version>
 	<name>pom_version Maven Mojo</name>
 	<url>http://proyectos.chuidiang.com/pom_version/</url>
 	<dependencies>

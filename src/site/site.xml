@@ -32,6 +32,7 @@
 		<menu name="Informacion">
 			<item name="Licencia" href="licencia.html" />
 			<item name="Desarrolladores" href="desarrolladores.html" />
+			<item name="Versiones" href="versiones.html"/>
 		</menu>
 		<menu name="Informes">
 			<item name="Cobertura" href="cobertura/index.html" />

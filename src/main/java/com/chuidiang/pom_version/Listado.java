@@ -26,6 +26,7 @@ import java.util.LinkedList;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
 /**
@@ -99,6 +100,8 @@ public class Listado extends AbstractMojo {
 	 * Analiza el pom.xml y realiza el listado.
 	 */
 	public void execute() throws MojoExecutionException {
+		Log log = getLog();
+		
 		while (null != proyecto.getParent())
 			proyecto = proyecto.getParent();
 		outputDirectory = new File(proyecto.getBuild().getDirectory());
@@ -108,7 +111,7 @@ public class Listado extends AbstractMojo {
 		// Si a CambiaPom se le pasa un Hashtable de cambios null,
 		// no hace ningun cambio, pero genera igualmente el listado
 		// de artifacts en el pom.xml
-		CambiaPom cp = new CambiaPom(null, basedir, todo);
+		CambiaPom cp = new CambiaPom(null, basedir, todo, log);
 		LinkedList<Artifact> listado = cp.getListado();
 
 		File ficheroCambiaConf = new File(outputDirectory, "cambia.conf");
@@ -124,7 +127,7 @@ public class Listado extends AbstractMojo {
 					linea = br.readLine();
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				log.error(e);
 			}
 		}
 
@@ -146,7 +149,7 @@ public class Listado extends AbstractMojo {
 			}
 			pw.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.error(e);
 		}
 	}
 }

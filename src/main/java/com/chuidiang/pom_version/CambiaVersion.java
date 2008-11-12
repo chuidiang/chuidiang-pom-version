@@ -20,6 +20,7 @@ import java.io.File;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 
 /**
  * Modifica los groupId:artifactId:version de un fichero pom.xml<br>
@@ -54,10 +55,11 @@ public class CambiaVersion
     public void execute()
         throws MojoExecutionException
     {
+    	Log log = getLog();
     	// lectura del fichero cambio.conf
-    	FicheroConfiguracion f = new FicheroConfiguracion();
+    	FicheroConfiguracion f = new FicheroConfiguracion(log);
     	
     	// realizacion de los cambios
-    	new CambiaPom(f.getCambios(),basedir, true);
+    	new CambiaPom(f.getCambios(),basedir, true, log);
     }
 }

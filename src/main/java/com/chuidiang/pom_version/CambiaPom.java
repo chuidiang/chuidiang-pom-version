@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.maven.plugin.logging.Log;
 import org.apache.xml.serialize.DOMWriterImpl;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -47,6 +48,9 @@ public class CambiaPom {
 	 */
 	private boolean todo;
 
+	/** log de maven */
+	private Log log;
+
 	/**
 	 * Constructor de la clase. Analiza el fichero pom.xml en el directorio
 	 * basedir que se le pasa y realiza los cambios que se indican en el
@@ -65,7 +69,8 @@ public class CambiaPom {
 	 *            project.
 	 */
 	public CambiaPom(Hashtable<Artifact, Artifact> cambios, File basedir,
-			boolean todo) {
+			boolean todo, Log log) {
+		this.log = log;
 		this.todo = todo;
 		this.basedir = basedir;
 		this.cambios = cambios;
@@ -96,7 +101,7 @@ public class CambiaPom {
 				renombraFicheros();
 			}
 		} catch (Exception spe) {
-			spe.printStackTrace();
+			log.error(spe);
 		}
 
 	}
@@ -171,15 +176,15 @@ public class CambiaPom {
 		for (int i = 0; i < numeroNodos; i++) {
 			Node hijo = lista.item(i);
 			if ("groupId".equals(hijo.getNodeName())) {
-				artifact.setGroupId(hijo.getTextContent());
+				artifact.setGroupId(limpiaEspacios(hijo.getTextContent()));
 				nodoGroupId = hijo;
 			}
 			if ("artifactId".equals(hijo.getNodeName())) {
-				artifact.setArtifactId(hijo.getTextContent());
+				artifact.setArtifactId(limpiaEspacios(hijo.getTextContent()));
 				nodoArtifactId = hijo;
 			}
 			if ("version".equals(hijo.getNodeName())) {
-				artifact.setVersion(hijo.getTextContent());
+				artifact.setVersion(limpiaEspacios(hijo.getTextContent()));
 				nodoVersion = hijo;
 			}
 		}
@@ -198,12 +203,23 @@ public class CambiaPom {
 			Artifact nuevo = cambios.get(artifact);
 			if (null != nuevo) {
 				hayCambios = true;
-				System.out.println("Cambiando " + artifact + " --> " + nuevo);
+				log.info("Cambiando " + artifact + " --> " + nuevo);
 				nodoGroupId.setTextContent(nuevo.getGroupId());
 				nodoArtifactId.setTextContent(nuevo.getArtifactId());
 				nodoVersion.setTextContent(nuevo.getVersion());
 			}
 		}
+	}
+
+	/**
+	 * Elimina de la cadena todos los espacios en blanco, tabuladores, retorno
+	 * de carro, etc.
+	 * 
+	 * @param cadena
+	 * @return Cadena sin espacios, tabuladores, retornos.
+	 */
+	public String limpiaEspacios(String cadena) {
+		return cadena.replaceAll("\\s", "");
 	}
 
 	/**
