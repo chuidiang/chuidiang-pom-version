@@ -7,9 +7,12 @@ import java.util.LinkedList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.apache.maven.plugin.logging.Log;
-import org.apache.xml.serialize.DOMWriterImpl;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -25,209 +28,221 @@ import org.w3c.dom.NodeList;
  */
 public class CambiaPom {
 
-	/** Marca si ha habido cambios en el pom.xml, para reescribirlo */
-	private boolean hayCambios = false;
+    /** Marca si ha habido cambios en el pom.xml, para reescribirlo */
+    private boolean hayCambios = false;
 
-	/**
-	 * Cambios a realizar. Las claves son los Artifacts existentes en el
-	 * pom.xml, los valores son los nuevos Artifacts deseados.
-	 */
-	private Hashtable<Artifact, Artifact> cambios = null;
+    /**
+     * Cambios a realizar. Las claves son los Artifacts existentes en el
+     * pom.xml, los valores son los nuevos Artifacts deseados.
+     */
+    private Hashtable<Artifact, Artifact> cambios = null;
 
-	/**
-	 * Directorio en el que se encuentra el fichero pom.xml a analizar.
-	 */
-	private File basedir;
+    /**
+     * Directorio en el que se encuentra el fichero pom.xml a analizar.
+     */
+    private File basedir;
 
-	/** Lista de Artifacts que se han encontrado en el pom.xml */
-	private LinkedList<Artifact> listado = new LinkedList<Artifact>();
+    /** Lista de Artifacts que se han encontrado en el pom.xml */
+    private LinkedList<Artifact> listado = new LinkedList<Artifact>();
 
-	/**
-	 * Indica si saca en el listado todos los artifacts. Si es false, solo saca
-	 * los de parent y project.
-	 */
-	private boolean todo;
+    /**
+     * Indica si saca en el listado todos los artifacts. Si es false, solo saca
+     * los de parent y project.
+     */
+    private boolean todo;
 
-	/** log de maven */
-	private Log log;
+    /** log de maven */
+    private Log log;
 
-	/**
-	 * Constructor de la clase. Analiza el fichero pom.xml en el directorio
-	 * basedir que se le pasa y realiza los cambios que se indican en el
-	 * Hashtable cambios.<br>
-	 * En el proceso rellena el atributo listado con todos los Artifacts
-	 * encontrados. Podemos usar esta clase pasando null en cambios para obtener
-	 * un listado de los Artifacts que aparecen en el pom.xml
-	 * 
-	 * @param cambios
-	 *            Cambios que se desean.
-	 * @param basedir
-	 *            Directorio donde esta el pom.xml
-	 * @param todo
-	 *            Si es true, anade todos los artifacts que encuentre en el
-	 *            pom.xml a la lista. Si es false, solo anade los parent y
-	 *            project.
-	 */
-	public CambiaPom(Hashtable<Artifact, Artifact> cambios, File basedir,
-			boolean todo, Log log) {
-		this.log = log;
-		this.todo = todo;
-		this.basedir = basedir;
-		this.cambios = cambios;
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		Document documento = null;
+    /**
+     * Constructor de la clase. Analiza el fichero pom.xml en el directorio
+     * basedir que se le pasa y realiza los cambios que se indican en el
+     * Hashtable cambios.<br>
+     * En el proceso rellena el atributo listado con todos los Artifacts
+     * encontrados. Podemos usar esta clase pasando null en cambios para obtener
+     * un listado de los Artifacts que aparecen en el pom.xml
+     * 
+     * @param cambios
+     *            Cambios que se desean.
+     * @param basedir
+     *            Directorio donde esta el pom.xml
+     * @param todo
+     *            Si es true, anade todos los artifacts que encuentre en el
+     *            pom.xml a la lista. Si es false, solo anade los parent y
+     *            project.
+     */
+    public CambiaPom(Hashtable<Artifact, Artifact> cambios, File basedir,
+            boolean todo, Log log) {
+        this.log = log;
+        this.todo = todo;
+        this.basedir = basedir;
+        this.cambios = cambios;
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        Document documento = null;
 
-		try {
-			// Lectura del pom.xml
-			DocumentBuilder builder = factory.newDocumentBuilder();
-			documento = builder.parse(new File(basedir, "pom.xml"));
+        try {
+            // Lectura del pom.xml
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            documento = builder.parse(new File(basedir, "pom.xml"));
 
-			// Se recorren los nodos leidos para realizar los cambios.
-			Node n = documento.getFirstChild();
-			analiza(n);
+            // Se recorren los nodos leidos para realizar los cambios.
+            Node n = documento.getFirstChild();
+            analiza(n);
 
-			// Si ha habido cambios, se escribe un fichero ppom.xml
-			// con los cambios realizados.
-			if (hayCambios) {
-				DOMWriterImpl domWriter = new DOMWriterImpl();
-				FileOutputStream f = new FileOutputStream(new File(basedir,
-						"ppom.xml"));
-				domWriter.writeNode(f, n);
-				f.close();
+            // Si ha habido cambios, se escribe un fichero ppom.xml
+            // con los cambios realizados.
+            if (hayCambios) {
+                // Obtención del TransfomerFactory y del Transformer a partir de
+                // él.
+                TransformerFactory transformerFactory = TransformerFactory
+                        .newInstance();
+                Transformer transformer = transformerFactory.newTransformer();
 
-				// Se renombran los ficheros, de forma que el original
-				// pasa a ser pom1.xml y el ppom.xml que acabamos de
-				// escribir pasa a ser pom.xml
-				renombraFicheros();
-			}
-		} catch (Exception spe) {
-			log.error(spe);
-		}
+                // Creación de la fuente XML a partir del documento.
+                DOMSource source = new DOMSource(documento);
 
-	}
+                // Creación del resultado, que será un fichero.
+                FileOutputStream fileOutput = new FileOutputStream(new File(
+                        basedir, "ppom.xml"));
+                StreamResult result = new StreamResult(fileOutput);
 
-	/**
-	 * Renombra los ficheros pom.xml.<br> - pom.xml pasa a pom1.xml. Si ya
-	 * existe a pom2.xml y asi sucesivamente.<br> - ppom.xml pasa a ser el
-	 * nuevo pom.xml
-	 */
-	private void renombraFicheros() {
-		File pom = new File(basedir, "pom.xml");
+                // Se realiza la transformación, de Document a Fichero.
+                transformer.transform(source, result);
+                fileOutput.close();
 
-		// busqueda de un pom?.xml que no exista.
-		int version = 1;
-		File rename = new File(basedir, "pom" + version + ".xml");
-		while (rename.exists()) {
-			version++;
-			rename = new File(basedir, "pom" + version + ".xml");
-		}
+                // Se renombran los ficheros, de forma que el original
+                // pasa a ser pom1.xml y el ppom.xml que acabamos de
+                // escribir pasa a ser pom.xml
+                renombraFicheros();
+            }
+        } catch (Exception spe) {
+            log.error(spe);
+        }
 
-		// renombrado.
-		pom.renameTo(rename);
-		File ppom = new File(basedir, "ppom.xml");
-		ppom.renameTo(new File(basedir, "pom.xml"));
-	}
+    }
 
-	/**
-	 * Mira si el nodo es susceptible de contener un Artifact para ver si es
-	 * cambiable. Luego, recursivamente, se llama a si mismo para todos los
-	 * nodos hijos.
-	 * 
-	 * @param n
-	 *            Nodo a analizar.
-	 */
-	private void analiza(Node n) {
-		// El tag project puede tener dentro groupId, artifactId
-		// y version.
-		if ("project".equals(n.getNodeName()))
-			analizaArtifact(n);
-		// Idem con los tag dependency
-		if ("dependency".equals(n.getNodeName()))
-			analizaArtifact(n);
-		// y los tag parent.
-		if ("parent".equals(n.getNodeName()))
-			analizaArtifact(n);
+    /**
+     * Renombra los ficheros pom.xml.<br>
+     * - pom.xml pasa a pom1.xml. Si ya existe a pom2.xml y asi sucesivamente.<br>
+     * - ppom.xml pasa a ser el nuevo pom.xml
+     */
+    private void renombraFicheros() {
+        File pom = new File(basedir, "pom.xml");
 
-		// Analisis de los hijos.
-		NodeList lista = n.getChildNodes();
-		int numeroNodos = lista.getLength();
-		for (int i = 0; i < numeroNodos; i++)
-			analiza(lista.item(i));
-	}
+        // busqueda de un pom?.xml que no exista.
+        int version = 1;
+        File rename = new File(basedir, "pom" + version + ".xml");
+        while (rename.exists()) {
+            version++;
+            rename = new File(basedir, "pom" + version + ".xml");
+        }
 
-	/**
-	 * Busca los nodos hijos groupId, artifactId y version del nodo que se le
-	 * pasa y mira a ver si deben ser cambiados de acuerdo al Hashtable que se
-	 * paso en el constructor. Realiza si procede los cambios, actualiza el
-	 * listado de Artifacts y marca el flag hayCambios si los hay.
-	 * 
-	 * @param n
-	 *            Nodo a analizar.
-	 */
-	private void analizaArtifact(Node n) {
-		NodeList lista = n.getChildNodes();
-		Node nodoGroupId = null;
-		Node nodoArtifactId = null;
-		Node nodoVersion = null;
-		int numeroNodos = lista.getLength();
-		Artifact artifact = new Artifact();
+        // renombrado.
+        pom.renameTo(rename);
+        File ppom = new File(basedir, "ppom.xml");
+        ppom.renameTo(new File(basedir, "pom.xml"));
+    }
 
-		// recorre nodos hijos buscando groupId, artifactId y version
-		for (int i = 0; i < numeroNodos; i++) {
-			Node hijo = lista.item(i);
-			if ("groupId".equals(hijo.getNodeName())) {
-				artifact.setGroupId(limpiaEspacios(hijo.getTextContent()));
-				nodoGroupId = hijo;
-			}
-			if ("artifactId".equals(hijo.getNodeName())) {
-				artifact.setArtifactId(limpiaEspacios(hijo.getTextContent()));
-				nodoArtifactId = hijo;
-			}
-			if ("version".equals(hijo.getNodeName())) {
-				artifact.setVersion(limpiaEspacios(hijo.getTextContent()));
-				nodoVersion = hijo;
-			}
-		}
+    /**
+     * Mira si el nodo es susceptible de contener un Artifact para ver si es
+     * cambiable. Luego, recursivamente, se llama a si mismo para todos los
+     * nodos hijos.
+     * 
+     * @param n
+     *            Nodo a analizar.
+     */
+    private void analiza(Node n) {
+        // El tag project puede tener dentro groupId, artifactId
+        // y version.
+        if ("project".equals(n.getNodeName()))
+            analizaArtifact(n);
+        // Idem con los tag dependency
+        if ("dependency".equals(n.getNodeName()))
+            analizaArtifact(n);
+        // y los tag parent.
+        if ("parent".equals(n.getNodeName()))
+            analizaArtifact(n);
 
-		// Anade el Artifact al listado si no estaba ya.
-		if (-1 == listado.indexOf(artifact)) {
-			if ("dependency".equals(n.getNodeName())) {
-				if (todo)
-					listado.add(artifact);
-			} else
-				listado.add(artifact);
-		}
+        // Analisis de los hijos.
+        NodeList lista = n.getChildNodes();
+        int numeroNodos = lista.getLength();
+        for (int i = 0; i < numeroNodos; i++)
+            analiza(lista.item(i));
+    }
 
-		// Realiza los cambios si esta Artifact hay que cambiarlo.
-		if (null != cambios) {
-			Artifact nuevo = cambios.get(artifact);
-			if (null != nuevo) {
-				hayCambios = true;
-				log.info("Cambiando " + artifact + " --> " + nuevo);
-				nodoGroupId.setTextContent(nuevo.getGroupId());
-				nodoArtifactId.setTextContent(nuevo.getArtifactId());
-				nodoVersion.setTextContent(nuevo.getVersion());
-			}
-		}
-	}
+    /**
+     * Busca los nodos hijos groupId, artifactId y version del nodo que se le
+     * pasa y mira a ver si deben ser cambiados de acuerdo al Hashtable que se
+     * paso en el constructor. Realiza si procede los cambios, actualiza el
+     * listado de Artifacts y marca el flag hayCambios si los hay.
+     * 
+     * @param n
+     *            Nodo a analizar.
+     */
+    private void analizaArtifact(Node n) {
+        NodeList lista = n.getChildNodes();
+        Node nodoGroupId = null;
+        Node nodoArtifactId = null;
+        Node nodoVersion = null;
+        int numeroNodos = lista.getLength();
+        Artifact artifact = new Artifact();
 
-	/**
-	 * Elimina de la cadena todos los espacios en blanco, tabuladores, retorno
-	 * de carro, etc.
-	 * 
-	 * @param cadena
-	 * @return Cadena sin espacios, tabuladores, retornos.
-	 */
-	public String limpiaEspacios(String cadena) {
-		return cadena.replaceAll("\\s", "");
-	}
+        // recorre nodos hijos buscando groupId, artifactId y version
+        for (int i = 0; i < numeroNodos; i++) {
+            Node hijo = lista.item(i);
+            if ("groupId".equals(hijo.getNodeName())) {
+                artifact.setGroupId(limpiaEspacios(hijo.getTextContent()));
+                nodoGroupId = hijo;
+            }
+            if ("artifactId".equals(hijo.getNodeName())) {
+                artifact.setArtifactId(limpiaEspacios(hijo.getTextContent()));
+                nodoArtifactId = hijo;
+            }
+            if ("version".equals(hijo.getNodeName())) {
+                artifact.setVersion(limpiaEspacios(hijo.getTextContent()));
+                nodoVersion = hijo;
+            }
+        }
 
-	/**
-	 * Devuelve el listado de Artifacts encontrados en el pom.xml actual.
-	 * 
-	 * @return Lista de artifacts
-	 */
-	public LinkedList<Artifact> getListado() {
-		return listado;
-	}
+        // Anade el Artifact al listado si no estaba ya.
+        if (-1 == listado.indexOf(artifact)) {
+            if ("dependency".equals(n.getNodeName())) {
+                if (todo)
+                    listado.add(artifact);
+            } else
+                listado.add(artifact);
+        }
+
+        // Realiza los cambios si esta Artifact hay que cambiarlo.
+        if (null != cambios) {
+            Artifact nuevo = cambios.get(artifact);
+            if (null != nuevo) {
+                hayCambios = true;
+                log.info("Cambiando " + artifact + " --> " + nuevo);
+                nodoGroupId.setTextContent(nuevo.getGroupId());
+                nodoArtifactId.setTextContent(nuevo.getArtifactId());
+                nodoVersion.setTextContent(nuevo.getVersion());
+            }
+        }
+    }
+
+    /**
+     * Elimina de la cadena todos los espacios en blanco, tabuladores, retorno
+     * de carro, etc.
+     * 
+     * @param cadena
+     * @return Cadena sin espacios, tabuladores, retornos.
+     */
+    public String limpiaEspacios(String cadena) {
+        return cadena.replaceAll("\\s", "");
+    }
+
+    /**
+     * Devuelve el listado de Artifacts encontrados en el pom.xml actual.
+     * 
+     * @return Lista de artifacts
+     */
+    public LinkedList<Artifact> getListado() {
+        return listado;
+    }
 }
