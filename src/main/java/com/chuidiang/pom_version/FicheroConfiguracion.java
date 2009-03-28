@@ -50,19 +50,10 @@ public class FicheroConfiguracion {
 
                         // Separar groupId, artifactId y version partiendo
                         // la cadena por los dos puntos :
-                        String[] versionOriginal = versiones[0].split(":");
-                        Artifact artifactOriginal = new Artifact();
-                        artifactOriginal.setGroupId(versionOriginal[0].trim());
-                        artifactOriginal.setArtifactId(versionOriginal[1]
-                                .trim());
-                        artifactOriginal.setVersion(versionOriginal[2].trim());
+                        Artifact artifactOriginal = getArtifact(versiones[0]);
 
                         // Idem para el segundo trozo de la linea
-                        String[] versionNueva = versiones[1].split(":");
-                        Artifact artifactNuevo = new Artifact();
-                        artifactNuevo.setGroupId(versionNueva[0].trim());
-                        artifactNuevo.setArtifactId(versionNueva[1].trim());
-                        artifactNuevo.setVersion(versionNueva[2].trim());
+                        Artifact artifactNuevo = getArtifact(versiones[1]);
 
                         // Al Hashtable.
                         cambios.put(artifactOriginal, artifactNuevo);
@@ -76,6 +67,23 @@ public class FicheroConfiguracion {
             }
 
         }
+    }
+
+    /**
+     * Se le pasa un artifact en formato String "groupId:artifactId:version" y
+     * lo devuelve como clase Artifact.
+     * 
+     * @param artifactComoString
+     *            El artifact como String
+     * @return El artifact como clase Artifact
+     */
+    private Artifact getArtifact(String artifactComoString) {
+        String[] versiones = artifactComoString.split(":");
+        Artifact artifactNuevo = new Artifact();
+        artifactNuevo.setGroupId(versiones[0].trim());
+        artifactNuevo.setArtifactId(versiones[1].trim());
+        artifactNuevo.setVersion(versiones[2].trim());
+        return artifactNuevo;
     }
 
     /**

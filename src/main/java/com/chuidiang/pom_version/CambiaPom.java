@@ -243,6 +243,14 @@ public class CambiaPom {
         return cadena.replaceAll("\\s", "");
     }
 
+    /**
+     * Llama a los metodos limpiaEspacios() y reemplazaPropiedadesPorValor(),
+     * devolviendo la cadena resultante.
+     * 
+     * @param cadena
+     *            cadena a transformar
+     * @return cadena sin espacios y con las propiedades sustituidas
+     */
     public String arreglaCadena(String cadena) {
         return reemplazaPropiedadesPorValor(limpiaEspacios(cadena), propiedades);
     }
