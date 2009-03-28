@@ -6,7 +6,7 @@ Plugin maven para cambiar versiones en el pom.xml
 
  El plugin tiene dos <goals>
  
-* com.chuidiang:pom_version:1.0.0:cambia
+* com.chuidiang:pom_version:1.1.0:cambia
 
  Para ejecutar este <goal> correctamente, debemos tener en el directorio del <pom.xml> un fichero <cambia.conf>. Este fichero debe contener en cada linea el nombre actual del <artifact> que queremos cambiar, un espacio, y el nuevo nombre que queremos darle al <artifact>. 
 
@@ -21,12 +21,12 @@ junit:junit:3.8.1 junit:junit:4.0
  El plugin se ejecuta con el comando
  
 +-----
-mvn com.chuidiang:pom_version:1.0.1:cambia
+mvn com.chuidiang:pom_version:1.1.0:cambia
 +-----
 
  Esto modificara el <pom.xml> cambiando la version 3.8.1 de junit por la 4.0. Lo hara recursivamente con todos los subproyectos que haya por debajo del actual. Ademas, dejara en ficheros <pom1.xml> las versiones originales, por si queremos volver atras. Si ya existiese el fichero <pom1.xml> de alguna ejecucion anterior, se creara el fichero <pom2.xml>, <pom3.xml>, etc.
 
-* com.chuidiang:pom_version:1.0.1:lista
+* com.chuidiang:pom_version:1.1.0:lista
 
  Este <goal> ayuda a generar el fichero <cambia.conf> requerido por el <goal cambia>. En el directorio <target> generara un fichero <cambia.conf>. En este fichero estan los <artifacts> que se definen en este proyecto, es decir, los de los tag <parent> y <project>. Cada <artifact> aparece en una linea repetido dos veces, separado por un espacio.
  
@@ -45,7 +45,7 @@ mvn com.chuidiang:pom_version:1.0.1:cambia
  Supongamos un pom.xml en el que tenemos definido un <artifact> <chuidiang:el_artefacto:1.0> y ejecutamos este <goal lista> asi
 
 +-------------
-mvn -Dpom_version.groupId=com.chuidiang -Dpom_version.version=2.0 com.chuidiang:pom_version:1.0.0:lista
+mvn -Dpom_version.groupId=com.chuidiang -Dpom_version.version=2.0 com.chuidiang:pom_version:1.1.0:lista
 +-------------
 
  Esto generaria un fichero <target/cambia.conf> asi

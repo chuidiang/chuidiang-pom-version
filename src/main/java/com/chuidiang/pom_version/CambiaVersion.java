@@ -21,29 +21,34 @@ import java.io.File;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.project.MavenProject;
 
 /**
  * Modifica los groupId:artifactId:version de un fichero pom.xml<br>
- * En el directorio del pom.xml se crea un fichero cambia.conf con
- * una o mas lineas de texto.
- * Cada linea debe contener un groupId:artifactId:version existente en
- * el pom.xml, un espacio y un groupId:artifactId:version por el que se
- * desea cambiar.
- * Al ejecutar el plugin desde maven, se leera ese fichero cambia.conf
- * y se ejecutaran los cambios correspondientes en los pom.xml del
- * proyecto y subproyectos.
- * Se hacen copias de seguridad de los pom.xml originales llamandolas
- * pom1.xml, pom2.xml, etc.
- *
+ * En el directorio del pom.xml se crea un fichero cambia.conf con una o mas
+ * lineas de texto. Cada linea debe contener un groupId:artifactId:version
+ * existente en el pom.xml, un espacio y un groupId:artifactId:version por el
+ * que se desea cambiar. Al ejecutar el plugin desde maven, se leera ese fichero
+ * cambia.conf y se ejecutaran los cambios correspondientes en los pom.xml del
+ * proyecto y subproyectos. Se hacen copias de seguridad de los pom.xml
+ * originales llamandolas pom1.xml, pom2.xml, etc.
+ * 
  * @goal cambia
  * 
  * @phase process-sources
  */
-public class CambiaVersion
-    extends AbstractMojo
-{
+public class CambiaVersion extends AbstractMojo {
+    /**
+     * Proyecto
+     * 
+     * @parameter expression="${project}"
+     * @required
+     */
+    private MavenProject proyecto;
+
     /**
      * Directorio del pom.xml
+     * 
      * @parameter expression="${basedir}"
      * @required
      */
@@ -52,14 +57,13 @@ public class CambiaVersion
     /**
      * Realiza los cambios que se indiquen en el fichero cambios.conf
      */
-    public void execute()
-        throws MojoExecutionException
-    {
-    	Log log = getLog();
-    	// lectura del fichero cambio.conf
-    	FicheroConfiguracion f = new FicheroConfiguracion(log);
-    	
-    	// realizacion de los cambios
-    	new CambiaPom(f.getCambios(),basedir, true, log);
+    public void execute() throws MojoExecutionException {
+        Log log = getLog();
+        // lectura del fichero cambio.conf
+        FicheroConfiguracion f = new FicheroConfiguracion(log);
+
+        // realizacion de los cambios
+        new CambiaPom(f.getCambios(), basedir, true, log, proyecto
+                .getProperties());
     }
 }

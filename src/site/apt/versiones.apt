@@ -1,6 +1,14 @@
+Version 1.1.0
+
+ * Se tienen en cuenta las propiedades definidas en el proyecto para reemplazar variables ${variable} en el pom.xml {{{http://code.google.com/p/chuidiang-pom-version/issues/detail?id=2&can=1}Issue 2}}
+ 
+ * Se elimina la dependencia con Xerces {{{http://code.google.com/p/chuidiang-pom-version/issues/detail?id=4&can=1}Issue 4}}
+
+ []
+ 
 Version 1.0.1
 
- * Corregido bug {{http://code.google.com/p/chuidiang-pom-version/issues/detail?id=1}}
+ * Corregido bug {{{http://code.google.com/p/chuidiang-pom-version/issues/detail?id=1}Issue 1}}
 
  * Se usa Log en vez de e.printStackTrace() y System.out
 

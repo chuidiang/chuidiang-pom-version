@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Hashtable;
 import java.util.LinkedList;
+import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -54,6 +57,8 @@ public class CambiaPom {
     /** log de maven */
     private Log log;
 
+    private Properties propiedades;
+
     /**
      * Constructor de la clase. Analiza el fichero pom.xml en el directorio
      * basedir que se le pasa y realiza los cambios que se indican en el
@@ -72,11 +77,12 @@ public class CambiaPom {
      *            project.
      */
     public CambiaPom(Hashtable<Artifact, Artifact> cambios, File basedir,
-            boolean todo, Log log) {
+            boolean todo, Log log, Properties propiedades) {
         this.log = log;
         this.todo = todo;
         this.basedir = basedir;
         this.cambios = cambios;
+        this.propiedades = propiedades;
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         Document documento = null;
 
@@ -191,15 +197,15 @@ public class CambiaPom {
         for (int i = 0; i < numeroNodos; i++) {
             Node hijo = lista.item(i);
             if ("groupId".equals(hijo.getNodeName())) {
-                artifact.setGroupId(limpiaEspacios(hijo.getTextContent()));
+                artifact.setGroupId(arreglaCadena(hijo.getTextContent()));
                 nodoGroupId = hijo;
             }
             if ("artifactId".equals(hijo.getNodeName())) {
-                artifact.setArtifactId(limpiaEspacios(hijo.getTextContent()));
+                artifact.setArtifactId(arreglaCadena(hijo.getTextContent()));
                 nodoArtifactId = hijo;
             }
             if ("version".equals(hijo.getNodeName())) {
-                artifact.setVersion(limpiaEspacios(hijo.getTextContent()));
+                artifact.setVersion(arreglaCadena(hijo.getTextContent()));
                 nodoVersion = hijo;
             }
         }
@@ -237,6 +243,10 @@ public class CambiaPom {
         return cadena.replaceAll("\\s", "");
     }
 
+    public String arreglaCadena(String cadena) {
+        return reemplazaPropiedadesPorValor(limpiaEspacios(cadena), propiedades);
+    }
+
     /**
      * Devuelve el listado de Artifacts encontrados en el pom.xml actual.
      * 
@@ -244,5 +254,38 @@ public class CambiaPom {
      */
     public LinkedList<Artifact> getListado() {
         return listado;
+    }
+
+    /**
+     * Reemplaza las variables estilo ${variable} dentro de la cadena por el
+     * valor si existe.<br>
+     * Mira en las propiedades que se le pasan si existe una propiedad cuya
+     * clave corresponda con ${variable} y si existe, la reemplaza por su valor
+     * en la cadena.<br>
+     * Si no hay variables de ese estilo en la cadena o no encuentra un valor
+     * dentro de las propiedades, devuelve la cadena tal cual.
+     * 
+     * @param string
+     *            La cadena a analizar
+     * @param propiedades
+     *            Los pares variable, valor
+     * @return La cadena con la variable reemplazada por su valor si hay
+     *         variable y se encuentra su valor. La cadena original en caso
+     *         contrario
+     */
+    public String reemplazaPropiedadesPorValor(String string,
+            Properties propiedades) {
+        Pattern patron = Pattern.compile(".*\\$\\{(.*)\\}.*");
+        Matcher matcher = patron.matcher(string);
+        if (matcher.find()) {
+            String variable = matcher.group(1);
+            String valor = propiedades.getProperty(variable);
+            if (null != valor) {
+                String nuevaCadena = string
+                        .replaceFirst("\\$\\{(.*)\\}", valor);
+                return nuevaCadena;
+            }
+        }
+        return string;
     }
 }
