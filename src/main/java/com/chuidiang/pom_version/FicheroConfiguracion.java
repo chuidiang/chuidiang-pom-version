@@ -28,14 +28,10 @@ public class FicheroConfiguracion {
      */
     Hashtable<Artifact, Artifact> cambios = new Hashtable<Artifact, Artifact>();
 
-    /** Log de maven */
-    private Log log;
-
     /**
      * Lectura del fichero y generacion del Hashtable.
      */
     public FicheroConfiguracion(Log log) {
-        this.log = log;
         // Lectura del fichero.
         File f = new File("./cambia.conf");
         if (f.canRead()) {
